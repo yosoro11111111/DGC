@@ -1,5 +1,5 @@
 import type { RoomClient } from '../net/room-client';
-import { getToken, getCurrentUser, changeNickname, logout, nicknameCooldownMs } from '../account';
+import { getToken, getCurrentUser, changeNickname, logout, nicknameCooldownMs, wsBase } from '../account';
 import { fetchBadgeHistory, fetchHall, type Badge } from '../badge-api';
 import { badgeChip } from './trophy';
 import { refreshAccountEntry } from './auth-panel';
@@ -355,8 +355,7 @@ function renderPresence(): void {
 /** 门户级静默连接：进入多人区/页面刷新时保持在线，失败静默 */
 export async function portalConnect(room: RoomClient): Promise<void> {
   if (room.connected) return;
-  const saved = localStorage.getItem('dg-battle-server-url');
-  const url = saved || (location.protocol === 'https:' ? `wss://${location.host}/dgws` : 'ws://localhost:8787');
+  const url = wsBase();
   try {
     await room.connect(url, getToken());
   } catch {

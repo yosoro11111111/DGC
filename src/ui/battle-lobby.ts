@@ -1,16 +1,15 @@
 import type { RoomClient } from '../net/room-client';
 import { BOARD_SIZES, type BoardSize } from '../game/gem-battle';
 import { ensureNickname, getNickname, setNickname } from '../profile';
-import { getToken } from '../account';
+import { getToken, wsBase } from '../account';
 
 const SERVER_KEY = 'dg-battle-server-url';
 const TARGET_KEY = 'dg-battle-target';
 const BOARD_KEY = 'dg-battle-board';
 
 /**
- * 自建部署的服务器地址：在代码里填好即可（我们不再提供公共服务器；
- * 从 GitHub clone 的用户自行修改本行后构建部署）。
- * 留空则按环境默认：https 部署走同域 /dgws 反代，本地开发走 ws://localhost:8787。
+ * 自建部署的服务器地址：在代码里填好即可，也可在登录弹窗直接配置。
+ * 留空则按环境默认（优先读取用户配置的后台地址，否则走 wsBase）。
  */
 const SERVER_URL = '';
 
@@ -201,20 +200,19 @@ export class BattleLobby {
   private async ensureConnected(): Promise<boolean> {
     if (this.room.connected) return true;
     // 服务器地址优先级：代码常量 SERVER_URL > 已记忆的连接 > 环境默认
-    const url = SERVER_URL || localStorage.getItem(SERVER_KEY) || defaultServerUrl('');
+    const url = SERVER_URL || wsBase();
     if (!url) {
-      this.status('未配置服务器地址（自部署请在 battle-lobby.ts 顶部填写 SERVER_URL）');
+      this.status('未配置服务器地址（请在登录弹窗“配置服务器”填写您的后台域名）');
       return false;
     }
-    this.status('连接服务器中…');
+    this.status(`连接服务器（${url}）中…`);
     try {
       await this.room.connect(url, getToken());
-      localStorage.setItem(SERVER_KEY, url);
       this.room.hello(getNickname());
       this.status('已连接，创建房间、输入房间码或随机匹配');
       return true;
     } catch {
-      this.status('无法连接对战服务器 —— 本地测试请先运行 npm run server（或用 npm run dev 一并启动）');
+      this.status(`无法连接对战服务器（${url}），请确认后台是否已启动`);
       return false;
     }
   }

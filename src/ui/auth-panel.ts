@@ -72,6 +72,19 @@ function initDom(): void {
       </div>
       <div class="auth-msg" id="auth-msg"></div>
       <button class="btn-gold btn-lg" id="auth-submit" style="width:100%">登 录</button>
+      <div class="auth-server-row" style="margin-top:14px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.12)">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px">
+          <span class="hint" style="font-size:12px">后台服务器地址</span>
+          <button type="button" id="auth-server-toggle" style="font-size:11px; cursor:pointer; background:none; border:none; color:var(--gold, #f0c866)">配置服务器 ⚙</button>
+        </div>
+        <div id="auth-server-box" hidden>
+          <div style="display:flex; gap:6px">
+            <input type="text" id="auth-server-input" placeholder="例如 https://dgc-server.onrender.com" style="flex:1; font-size:12px; padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.3); color:#fff" />
+            <button type="button" class="btn" id="auth-server-save" style="padding:6px 12px; font-size:12px">保存</button>
+          </div>
+          <div class="hint" id="auth-server-tip" style="font-size:11px; margin-top:4px; line-height:1.4">自部署后台运行后，在此粘贴公网域名（支持 HTTPS 或 WSS）。</div>
+        </div>
+      </div>
     </div>`;
   el('modal-auth-body').querySelectorAll<HTMLElement>('.auth-tab').forEach((tab) => {
     tab.addEventListener('click', () => renderAuthForm(tab.dataset.mode as 'login' | 'register'));
@@ -79,6 +92,26 @@ function initDom(): void {
   el('auth-submit').addEventListener('click', () => void submitAuth());
   el('auth-pass').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') void submitAuth();
+  });
+
+  const serverToggle = el('auth-server-toggle');
+  const serverBox = el('auth-server-box');
+  const serverInput = el('auth-server-input', HTMLInputElement);
+  const serverSave = el('auth-server-save');
+  serverInput.value = localStorage.getItem('dg-battle-server-url') || '';
+  serverToggle.addEventListener('click', () => {
+    serverBox.hidden = !serverBox.hidden;
+  });
+  serverSave.addEventListener('click', () => {
+    const val = serverInput.value.trim();
+    if (val) {
+      localStorage.setItem('dg-battle-server-url', val);
+      el('auth-msg').textContent = '✅ 服务器地址已保存，请尝试登录或注册';
+    } else {
+      localStorage.removeItem('dg-battle-server-url');
+      el('auth-msg').textContent = '已清除自定义服务器地址';
+    }
+    serverBox.hidden = true;
   });
 
   // 账户按钮：未登录→登录弹窗；已登录→通知 main 打开社交页自己板块

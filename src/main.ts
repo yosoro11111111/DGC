@@ -20,7 +20,7 @@ import { loadGameSettings, BULLET_DEFAULTS, VERSUS_DEFAULTS, ROULETTE_DEFAULTS }
 import { configureSfx, playSfx } from './audio/sfx';
 import { PairingScreen } from './ui/pairing-screen';
 import { SettingsPanel } from './ui/settings-panel';
-import { displayName, getCurrentUser, getToken, isLoggedIn, logoutLocal, validateSession } from './account';
+import { displayName, getCurrentUser, getToken, isLoggedIn, logoutLocal, validateSession, wsBase } from './account';
 import { ensureNickname } from './profile';
 
 ensureNickname(); // 首次进入自动生成临时昵称，档案页可改
@@ -204,8 +204,7 @@ async function renderBoard(game: 'bullet' | 'versus' | 'roulette' | 'records' = 
 async function fetchRecords(): Promise<{ winner: string; loser: string; winScore: number; loseScore: number; time: string }[]> {
   try {
     if (!roomClient.connected) {
-      const last = localStorage.getItem('dg-battle-server-url');
-      if (last) await roomClient.connect(last, getToken());
+      await roomClient.connect(wsBase(), getToken());
     }
     return await roomClient.requestRecords();
   } catch {
@@ -223,8 +222,7 @@ function formatRecordTime(iso: string): string {
 async function fetchBoard(game: 'bullet' | 'versus' | 'roulette'): Promise<{ name: string; wins: number; losses: number; rate: number; best: number; games: number }[]> {
   try {
     if (!roomClient.connected) {
-      const last = localStorage.getItem('dg-battle-server-url');
-      if (last) await roomClient.connect(last, getToken());
+      await roomClient.connect(wsBase(), getToken());
     }
     return await roomClient.requestBoard(game);
   } catch {

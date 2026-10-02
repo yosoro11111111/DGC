@@ -68,24 +68,44 @@ export async function changeNickname(nickname: string): Promise<void> {
   }
 }
 
-/** ws://host:port → http://host:port（wss → https） */
+/** 标准化获取 HTTP API 基址：支持 wss/ws/https/http 及纯域名自动补全 */
 export function httpBase(): string {
-  const saved = localStorage.getItem('dg-battle-server-url');
-  const wsUrl = saved || (location.protocol === 'https:' ? `wss://${location.host}/dgws` : 'ws://localhost:8787');
-  return wsUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:');
+  const saved = localStorage.getItem('dg-battle-server-url')?.trim();
+  let base = saved || (location.protocol === 'https:' ? `https://${location.host}/dgws` : 'http://localhost:8787');
+  base = base.replace(/\/+$/, '');
+  if (base.startsWith('wss://')) base = base.replace(/^wss:/, 'https:');
+  else if (base.startsWith('ws://')) base = base.replace(/^ws:/, 'http:');
+  else if (!base.startsWith('http://') && !base.startsWith('https://')) {
+    base = (location.protocol === 'https:' ? 'https://' : 'http://') + base;
+  }
+  return base;
+}
+
+/** 标准化获取 WebSocket 房间基址 */
+export function wsBase(): string {
+  return httpBase().replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
 }
 
 async function api(path: string, body?: unknown): Promise<{ token?: string; user?: AccountUser }> {
-  const res = await fetch(`${httpBase()}${path}`, {
-    method: body === undefined ? 'GET' : 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  const base = httpBase();
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    throw new Error(`无法连接后台服务器（${base}）。请点击下方“配置服务器”填写已启动的后台地址。`);
+  }
   const data = (await res.json().catch(() => ({}))) as { code?: number; message?: string; data?: { token?: string; user?: AccountUser } };
   if (!res.ok || data.code !== 200) {
+    if (res.status === 404) {
+      throw new Error(`后台接口 404（${base}${path}）。当前地址非有效后台，请点击“配置服务器”设置真实后端域名。`);
+    }
     throw new Error(data.message || `请求失败（${res.status}）`);
   }
   return data.data ?? {};
