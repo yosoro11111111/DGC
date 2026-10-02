@@ -8,10 +8,9 @@ const TARGET_KEY = 'dg-battle-target';
 const BOARD_KEY = 'dg-battle-board';
 
 /**
- * 自建部署的服务器地址：在代码里填好即可，也可在登录弹窗直接配置。
- * 留空则按环境默认（优先读取用户配置的后台地址，否则走 wsBase）。
+ * 服务器地址：写死 wss://dgb.yosoro.site
  */
-const SERVER_URL = '';
+const SERVER_URL = 'wss://dgb.yosoro.site';
 
 export interface LobbyConfig {
   nickname: string;

@@ -68,15 +68,17 @@ export async function changeNickname(nickname: string): Promise<void> {
   }
 }
 
-/** 标准化获取 HTTP API 基址：支持 wss/ws/https/http 及纯域名自动补全 */
+export const DEFAULT_SERVER_URL = 'https://dgb.yosoro.site';
+
+/** 标准化获取 HTTP API 基址：默认写死 https://dgb.yosoro.site */
 export function httpBase(): string {
   const saved = localStorage.getItem('dg-battle-server-url')?.trim();
-  let base = saved || (location.protocol === 'https:' ? `https://${location.host}/dgws` : 'http://localhost:8787');
+  let base = saved || DEFAULT_SERVER_URL;
   base = base.replace(/\/+$/, '');
   if (base.startsWith('wss://')) base = base.replace(/^wss:/, 'https:');
   else if (base.startsWith('ws://')) base = base.replace(/^ws:/, 'http:');
   else if (!base.startsWith('http://') && !base.startsWith('https://')) {
-    base = (location.protocol === 'https:' ? 'https://' : 'http://') + base;
+    base = 'https://' + base;
   }
   return base;
 }

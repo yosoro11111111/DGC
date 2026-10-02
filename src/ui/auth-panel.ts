@@ -79,10 +79,10 @@ function initDom(): void {
         </div>
         <div id="auth-server-box" hidden>
           <div style="display:flex; gap:6px">
-            <input type="text" id="auth-server-input" placeholder="例如 https://dgc-server.onrender.com" style="flex:1; font-size:12px; padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.3); color:#fff" />
+            <input type="text" id="auth-server-input" placeholder="https://dgb.yosoro.site" style="flex:1; font-size:12px; padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.3); color:#fff" />
             <button type="button" class="btn" id="auth-server-save" style="padding:6px 12px; font-size:12px">保存</button>
           </div>
-          <div class="hint" id="auth-server-tip" style="font-size:11px; margin-top:4px; line-height:1.4">自部署后台运行后，在此粘贴公网域名（支持 HTTPS 或 WSS）。</div>
+          <div class="hint" id="auth-server-tip" style="font-size:11px; margin-top:4px; line-height:1.4">默认已内置服务器：https://dgb.yosoro.site。也可在此切换其他后台地址。</div>
         </div>
       </div>
     </div>`;
@@ -98,7 +98,7 @@ function initDom(): void {
   const serverBox = el('auth-server-box');
   const serverInput = el('auth-server-input', HTMLInputElement);
   const serverSave = el('auth-server-save');
-  serverInput.value = localStorage.getItem('dg-battle-server-url') || '';
+  serverInput.value = localStorage.getItem('dg-battle-server-url') || 'https://dgb.yosoro.site';
   serverToggle.addEventListener('click', () => {
     serverBox.hidden = !serverBox.hidden;
   });
@@ -109,7 +109,7 @@ function initDom(): void {
       el('auth-msg').textContent = '✅ 服务器地址已保存，请尝试登录或注册';
     } else {
       localStorage.removeItem('dg-battle-server-url');
-      el('auth-msg').textContent = '已清除自定义服务器地址';
+      el('auth-msg').textContent = '已恢复默认服务器（https://dgb.yosoro.site）';
     }
     serverBox.hidden = true;
   });
